@@ -107,6 +107,6 @@ def main(n=10000):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-n", type=int, default=10000)
+    parser.add_argument("-n", type=int, default=1) #default=10000
     args = parser.parse_args()
     sys.exit(main(n=args.n))
