@@ -27,13 +27,17 @@ def folder_images(folder):
 """
 
 if __name__ == '__main__':
+
+    dir_name='J000test' #Sets the name of the file the input png's are stored in
+
     print('\n Begin \n')
-    imgs = []
-    for filename in glob.iglob(os.getcwd() + '**/*.png', recursive=True):
-        galaxy_image=Image.open(filename)
-        galaxy_array=asarray(galaxy_image)
-        imgs.append(galaxy_array)
-    print('Images:', len(imgs))
+    imgs = {}
+    for filename in glob.iglob(os.getcwd() + '/' + f'{dir_name}' + '/**/*.png', recursive=True): #operates over all png's within the desired directory
+        galaxy_image=Image.open(filename) #Opens each image
+        galaxy_array=asarray(galaxy_image) 
+        imgs[filename] = galaxy_array #Appends all png's as numpy arrays to a dictionary
+    print('Images:', imgs)
+    print(os.getcwd())
     print('\n End')
 
 """
