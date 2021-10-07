@@ -102,6 +102,9 @@ def lupton_rgb(imgs, bands='grz', arcsinh=1., mn=0.1, mx=100., desaturate=False,
         img_photons = img_flux * exposure_time_seconds / photon_energy
         img_photons_per_pixel = np.sum(img_photons, axis=2, keepdims=True)
 
+        #In order to work backwards to reproduce the image from photon counts, we will need to re-split the data 
+        #back into its 3 bands. maybe do this by taking the rgz ratio initially and keeping that after correction?
+
         mean_all_bands = img.mean(axis=2, keepdims=True)
         deviation_from_mean = img - mean_all_bands
         signal_to_noise = np.sqrt(img_photons_per_pixel)
@@ -113,8 +116,8 @@ def lupton_rgb(imgs, bands='grz', arcsinh=1., mn=0.1, mx=100., desaturate=False,
     rescaling = nonlinear_map(I, arcsinh=arcsinh)/I
     rescaled_img = img * rescaling
 
-    rescaled_img = (rescaled_img - mn) * (mx - mn)
-    rescaled_img = (rescaled_img - mn) * (mx - mn)
+    #rescaled_img = (rescaled_img - mn) * (mx - mn)
+    #rescaled_img = (rescaled_img - mn) * (mx - mn)
 
     return np.clip(rescaled_img, 0., 1.), rescaled_img
 
@@ -223,6 +226,48 @@ def nonlinear_map(x, arcsinh=1.):
         (np.array) array with map applied
     """
     return np.arcsinh(x * arcsinh)
+
+def ndarray_from_photon_counts(photon_array, initial_array, bands='grz'):
+    """
+    Reverses the process done by lupton_rgb to return an ndarray capable of being converted
+    into a png from an initally photon count data set.
+
+    inputs:
+        photon_array - (x,x) array of ints for number 
+        initial_array -
+    """
+    photon_energy = 600. * 1e-9
+    exposure_time_seconds = 90. * 3.
+
+    photon_array = np.transpose(photon_array) #need to reshape the array to (3, x, x) from (x, x, 3)
+    photons_per_band =  photon_array * ratio_of_bands(initial_array)#Split back into bands (3) consider ratios?
+    image_flux_back = (photon_energy * photons_per_band)/exposure_time_seconds #Find the flux from the number of photons
+    image_absolute_mag_back = -2.5 * np.log10(image_flux_back/3631) #Absolute mag from flux
+    image_nano_mag_back = np.power(10, (image_absolute_mag_back - 22.5)/(-2.5))#Nanomaggies from magnitude 
+
+    size = initial_array[0].shape[0]
+    grzscales = dict(g=(2, 0.00526),
+                     r=(1, 0.008),
+                     z=(0, 0.0135))
+
+    returned_image = np.zeros((size, size, 3), np.float32)
+    for im, band in zip(image_nano_mag_back, bands):
+        plane, scale = grzscales.get(band, (0, 1.))
+        returned_image[:, :, plane] = (im*scale).astype(np.float32)
+
+    return returned_image
+
+def ratio_of_bands(imgs):
+    """
+    Find the ratio in plane for each pixel
+
+    inputs:
+        imgs - (3, x, x) numpy array
+
+    outputs
+        (3, x, x) array of the ratio for each pixel
+    """
+    return imgs/np.sum(imgs, axis=0)
 
 if __name__ == "__main__":
     print('hello')

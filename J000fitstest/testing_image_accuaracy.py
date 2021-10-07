@@ -16,4 +16,4 @@ if __name__ == '__main__':
     diff = galaxy_Im_1 - galaxy_Im_2
 
     diff_im = Image.fromarray(((1 - diff)* 255).astype(np.uint8))
-    diff_im.save(f'Sshould_be_white_or_balck.png')
+    diff_im.save(f'Should_be_white_or_black.png')

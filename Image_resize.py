@@ -46,7 +46,7 @@ if __name__ == '__main__':
     convolved_pic.save(f'convolved_pre_crop.png')
 
     #Crop and resize
-    cropped_image = crop_and_resize(convolved_pic, scale)
+    cropped_image = crop_and_resize(convolved_pic, scale) #Should probably swap the order of the convolving and cropping, that way we avoid the white border easier.
 
     #Noise
     #TBD

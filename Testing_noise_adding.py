@@ -28,7 +28,7 @@ if __name__ == '__main__':
  
     print('Initial values:', galaxy_Im[0][0])
 
-    for x in [0.01, 0.1]:
+    for x in [0.01,  0.1]:
 
         galaxy_Im = np.multiply(galaxy_Im, scale_factors*x) #Some may reach values > 255, we need to account for this.
         galaxy_Im = np.add(galaxy_Im, np.sqrt(galaxy_Im)*x)

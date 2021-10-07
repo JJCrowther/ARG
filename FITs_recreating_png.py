@@ -1,9 +1,5 @@
-from astropy.io import fits
-import matplotlib.pyplot as plt
 import glob
 import os
-import numpy as np
-from PIL import Image
 import FITs_to_PNG_MW
 
 if __name__ == '__main__':
