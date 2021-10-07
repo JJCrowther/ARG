@@ -12,6 +12,7 @@ if __name__ == '__main__':
     galaxy_Im = asarray(galaxy)
 
     print('max value is:', np.max(galaxy_Im))
+    print('shape is:', galaxy_Im.shape)
 
     #reformed_galaxy = Image.fromarray(((1 - galaxy_Im)*255).astype(np.uint8))
     #reformed_galaxy.save('reformed.png')

@@ -4,6 +4,7 @@ import glob
 import os
 import numpy as np
 from PIL import Image
+import FITs_to_PNG_MW
 
 if __name__ == '__main__':
 
@@ -11,14 +12,10 @@ if __name__ == '__main__':
 
     print('\n Begin \n')
     imgs = {}
+    i=0
     for filename in glob.iglob(os.getcwd() + '/' + f'{dir_name}' + '/**/*.fits', recursive=True): #operates over all png's within the desired directory
+        i+=1
+        imgs[i]=filename
 
-        image_data = fits.getdata(filename)
-
-        print((image_data).shape)
-        #print((np.transpose(image_data)).shape)
-
-
-        plt.imshow(image_data[0])
-        #plt.savefig(f'{filename}_from_fits_data.png')
-        #plt.close()
+    for i in range(len(imgs)):
+        FITs_to_PNG_MW.make_png_from_fits(imgs[i+1], imgs[i+1] + '.png', 424)

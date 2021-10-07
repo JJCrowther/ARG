@@ -10,7 +10,6 @@ from PIL import Image
 from numpy import asarray
 import glob
 import redshifting
-import cv2
 import os
 
 print(os.getcwd())
@@ -36,8 +35,8 @@ if __name__ == '__main__':
         galaxy_image=Image.open(filename) #Opens each image
         galaxy_array=asarray(galaxy_image) 
         imgs[filename] = galaxy_array #Appends all png's as numpy arrays to a dictionary
-    print('Images:', imgs)
-    print(os.getcwd())
+    #print('Images:', len(imgs))
+    #print(os.getcwd())
     print('\n End')
 
 """
