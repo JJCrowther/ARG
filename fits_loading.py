@@ -19,6 +19,6 @@ if __name__ == '__main__':
         #print((np.transpose(image_data)).shape)
 
 
-        plt.imshow(image_data[0])
+        #plt.imshow(image_data[0])
         #plt.savefig(f'{filename}_from_fits_data.png')
         #plt.close()

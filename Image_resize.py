@@ -41,6 +41,7 @@ if __name__ == '__main__':
 
     convolve_output = redshifting.convolve_psf(pre_convolved, seeing=3.5) #Contorl seeing here
     convolve_output = convolve_output.squeeze()
+    print(convolve_output.shape)
     convolved_pic = Image.fromarray(((1 - convolve_output)* 255).astype(np.uint8))
 
     convolved_pic.save(f'convolved_pre_crop.png')

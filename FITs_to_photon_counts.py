@@ -31,8 +31,8 @@ if __name__ == '__main__':
     rescaled_photon = {}
 
     for j in range(len(imgs)):
-        imgs_photon[j]=FITs_to_PNG_MW.lupton_rgb(np.split(imgs[j], 3), desaturate=True)[0] #lupton requires input of a list of numpy arrays where each array is for one of the colour bands
-        rescaled_photon[j]=FITs_to_PNG_MW.lupton_rgb(np.split(imgs[j], 3), desaturate=True)[1]
+        imgs_photon[j]=FITs_to_PNG_MW.lupton_rgb(np.split(imgs[j], 3), desaturate=False)[0] #lupton requires input of a list of numpy arrays where each array is for one of the colour bands
+        rescaled_photon[j]=FITs_to_PNG_MW.lupton_rgb(np.split(imgs[j], 3), desaturate=False)[1]
         j+=1
 
     print('\nCompleted converting to photon counts:', rescaled_photon[0], rescaled_photon[0].shape, np.transpose(rescaled_photon[0]).shape) #might need flipping
@@ -56,5 +56,5 @@ if __name__ == '__main__':
 
 
 
-    #image = Image.fromarray(((imgs_photon[0])* 255).astype(np.uint8))
-    #image.save(f'photon_count_image.png')
+    image = Image.fromarray(((imgs_photon[0])* 255).astype(np.uint8))
+    image.save(f'photon_count_image.png')

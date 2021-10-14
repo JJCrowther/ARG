@@ -4,6 +4,34 @@ import warnings
 from PIL import Image
 import numpy as np
 
+def make_png_from_corrected_fits(img, png_loc, png_size):
+    '''
+    Create png from multi-band fits
+    Args:
+        fits_loc (str): location of .fits to create png from
+        png_loc (str): location to save png
+    Returns:
+        None
+    '''
+        # TODO wrap?
+
+            # Set parameters for RGB image creation
+    _scales = dict(
+            g=(2, 0.008),
+            r=(1, 0.014),
+            z=(0, 0.019))
+    _mnmx = (-0.5, 300)
+
+    rgbimg = dr2_style_rgb(
+            (img[0, :, :], img[1, :, :], img[2, :, :]),
+            'grz',
+            mnmx=_mnmx,
+            arcsinh=1.,
+            scales=_scales,
+            desaturate=True)
+    save_carefully_resized_png(png_loc, rgbimg, target_size=png_size)
+
+    return 
 
 def make_png_from_fits(fits_loc, png_loc, png_size):
     '''
@@ -37,6 +65,8 @@ def make_png_from_fits(fits_loc, png_loc, png_size):
             scales=_scales,
             desaturate=True)
         save_carefully_resized_png(png_loc, rgbimg, target_size=png_size)
+
+    return
 
 def save_carefully_resized_png(png_loc, native_image, target_size):
     """
@@ -257,6 +287,59 @@ def ndarray_from_photon_counts(photon_array, initial_array, bands='grz'):
 
     return returned_image
 
+def photon_counts_from_FITS(imgs, bands='grz', arcsinh=1., mn=0.1, mx=100.):
+    """
+    Convert a FITS data file into a photon counts array       
+    """
+
+    size = imgs[0].shape[1]
+    grzscales = dict(g=(2, 0.00526),
+                     r=(1, 0.008),
+                     z=(0, 0.0135)
+                     )
+
+    # set the relative intensities of each band to be approximately equal
+    #img = np.zeros((size, size, 3), np.float32)
+    #for im, band in zip(imgs, bands):
+    #    plane, scale = grzscales.get(band, (0, 1.))
+    #    img[:, :, plane] = (im / scale).astype(np.float32)
+
+    #I = img.mean(axis=2, keepdims=True)
+
+    
+    img_nanomaggies = np.zeros((size, size, 3), np.float32)
+    for im, band in zip(imgs, bands):
+        plane, scale = grzscales.get(band, (0, 1.))
+        img_nanomaggies[:, :, plane] = im.astype(np.float32)
+    img_nanomaggies_nonzero = np.clip(img_nanomaggies, 1e-9, None)
+    img_ab_mag = 22.5 - 2.5 * np.log10(img_nanomaggies_nonzero)
+    img_flux = np.power(10, img_ab_mag / -2.5) * 3631
+        # DR1 release paper quotes 90s exposure time per band, 900s on completion
+        # TODO assume 3 exposures per band per image. exptime is per ccd, nexp per tile, will be awful to add
+    exposure_time_seconds = 90. * 3.
+    photon_energy = 600. * 1e-9  # TODO assume 600nm mean freq. for gri bands, can improve this
+    img_photons = img_flux * exposure_time_seconds / photon_energy
+    img_photons_per_pixel = np.sum(img_photons, axis=2, keepdims=True)
+
+        #In order to work backwards to reproduce the image from photon counts, we will need to re-split the data 
+        #back into its 3 bands. maybe do this by taking the rgz ratio initially and keeping that after correction?
+
+    #mean_all_bands = img.mean(axis=2, keepdims=True)
+    #deviation_from_mean = img - mean_all_bands
+    #signal_to_noise = np.sqrt(img_photons_per_pixel)
+    #saturation_factor = signal_to_noise * desaturate_factor
+        # if that would imply INCREASING the deviation, do nothing
+    #saturation_factor[saturation_factor > 1] = 1.
+    #img = mean_all_bands + (deviation_from_mean * saturation_factor)
+
+    #rescaling = nonlinear_map(I, arcsinh=arcsinh)/I
+    #rescaled_img = img * rescaling
+
+    #rescaled_img = (rescaled_img - mn) * (mx - mn)
+    #rescaled_img = (rescaled_img - mn) * (mx - mn)
+
+    return img_photons_per_pixel
+
 def ratio_of_bands(imgs):
     """
     Find the ratio in plane for each pixel
@@ -270,5 +353,4 @@ def ratio_of_bands(imgs):
     return imgs/np.sum(imgs, axis=0)
 
 if __name__ == "__main__":
-    print('hello')
     sys.exit()
