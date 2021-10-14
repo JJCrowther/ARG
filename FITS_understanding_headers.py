@@ -23,4 +23,4 @@ if __name__ == '__main__':
 
     hdr = img[0].header
 
-    print(hdr['comment'])
+    print(hdr['bscale'])

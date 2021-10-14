@@ -7,7 +7,7 @@ from PIL import Image
 #from numpy import asarray
 import numpy as np
 
-def photon_counts_from_FITS(imgs, bands='grz', mn=0.1, mx=100.):
+def photon_counts_from_FITS(imgs, scale_factor=1, bands='grz', mn=0.1, mx=100.):
     """
     Convert a FITS data file into a photon counts array       
     """
@@ -29,7 +29,7 @@ def photon_counts_from_FITS(imgs, bands='grz', mn=0.1, mx=100.):
         #    counts_data.append(img) #should make count_data a list of (3, x, x)
         #Scale to distance using d_I, d_O nd then add sqrt(n)
     
-    new_position_counts = poisson_noise(img_counts, 2) #scaling by 2
+    new_position_counts = poisson_noise(img_counts, scale_factor) #scaling by 2
     
     #scaled_data=[]
     img_scaled = np.zeros((3, size, size), np.float32)
@@ -87,7 +87,7 @@ def poisson_noise(photon_count, x):
     Scales the photon count by 1/d^2 to account for decreased photon numbers at new position
     before adding a poissonly distributed random noise to each channel for each pixel
     """
-    photon_at_distance_scale_x = photon_count #* (1/x)**2
+    photon_at_distance_scale_x = photon_count * (1/x)**2
     photon_with_poisson = photon_at_distance_scale_x + np.random.poisson(np.sqrt(photon_at_distance_scale_x))
     return photon_with_poisson
 
@@ -96,28 +96,24 @@ if __name__ == '__main__':
     dir_name='J000fitstest' #Sets the name of the file the input png's are stored in
 
     print('\n Begin \n')
-    #imgs = {} 
-    imgs = []
-
+    imgs = {}
     for filename in glob.iglob(os.getcwd() + '/' + f'{dir_name}' + '/**/*.fits', recursive=True): #operates over all png's within the desired directory
         try:
             img, hdr = fits.getdata(filename, 0, header=True)
         except Exception:
             warnings.warn('Invalid fits at {}'.format(filename))
-        #imgs[i]=img #Unsure if didctionary would be better here if required for a large quantity of data
-        imgs.append(img)
-
-
+        imgs[filename]=img #Unsure if didctionary would be better here if required for a large quantity of data
+        #imgs.append(img)
   
+
+
     final_data = {}
-    rescaled_photon = {}
 
-    for key in range(len(imgs)):
-        final_data[key]=photon_counts_from_FITS(imgs[key])
+    for key in imgs.keys():
+        final_data[key.replace('.fits', '').replace(os.getcwd() + '/' + f'{dir_name}' + '/', '')]=photon_counts_from_FITS(imgs[key], scale_factor=5) #Second input is scale factor
 
-
-    for entry in range(len(final_data)):
-        FITs_to_PNG_MW.make_png_from_corrected_fits(final_data[entry][0], 'Original_FITS_data_image.png', 424)
-        FITs_to_PNG_MW.make_png_from_corrected_fits(final_data[entry][2], 'Scaled_FITS_data_image.png', 424)
+    for entry_name in final_data.keys():
+        FITs_to_PNG_MW.make_png_from_corrected_fits(final_data[entry_name][0], 'Original_FITS_data_image_' + entry_name + '.png', 424)
+        FITs_to_PNG_MW.make_png_from_corrected_fits(final_data[entry_name][2], 'Scaled_FITS_data_image_' + entry_name + '.png', 424)
 
     print('\n End \n')
