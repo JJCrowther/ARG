@@ -6,23 +6,34 @@ import astropy.convolution as conv
 from astropy.cosmology import FlatLambdaCDM
 import astropy.units as u
 from matplotlib import pyplot as plt
+from PIL import Image
+from numpy import asarray
 
 cosmo = FlatLambdaCDM(H0=70 * u.km / u.s / u.Mpc, Tcmb0=2.725 * u.K, Om0=0.3)
+Im = Image.open("J000000.80+004200.0.png")
+numpy_data = asarray(Im)
 
+def print_hello():
+    return 'world'
 
 def main():
-    scale = process('input')
-    process('target', scale)
+    scale = process('input') #defines the name of the input image file
+    process('target', scale) #defines the name of the target image file and gives a scaling factor
 
 
 def process(name, scale=None, batchsize=1000):
-    images = np.load(f'{name}galaxies.npy')
-    redshifts = np.load(f'{name}redshifts.npy').squeeze()
+    #images = np.load(f'{name}galaxies.npy')
+    images = np.load('numpy_data.npy')
+    #redshifts = np.load(f'{name}redshifts.npy').squeeze()
+    redshifts = (np.load('numpy_data.npy').squeeze())
     # apply a uniform rescaling
     if scale is None:
-        scale = 20000 / np.max(images)
+        scale = 20000 // np.max(images)
+    print('Scale is:', scale)
     images *= scale
-    nsplit = len(images)//batchsize
+    print('lenght of images is:', len(images))
+    print('batch size is:', batchsize)
+    nsplit = (len(images)*10)//batchsize
     batches = [np.array_split(x, nsplit) for x in (images, redshifts)]
     plot_images = []
     for i, (imbatch, zbatch) in enumerate(zip(*batches)):
@@ -53,6 +64,15 @@ def observe_gals(images, redshifts, seeing=3.5, nominal_redshift=0.1,
 
 
 def add_noise(images, background=10, plot_idx=0):
+    """
+    Outputs an float32 type array of noise and a dictionary of shot noise and background noise
+
+    Inputs:
+
+        images - a list of images (4 dimensions? Our single image will only carry 3)
+        preset background - unsure why chosen to be 10
+        preset plot_idx - used to form dictionary
+    """
     plot_images = {}
     images = add_shot_noise(images)
     plot_images["shot noise"] = images[plot_idx]
@@ -133,7 +153,14 @@ def zoom_contents(image, scale, image_axes=[0, 1], method='linear', conserve_flu
     return output
     
     
-def add_shot_noise(images):    
+def add_shot_noise(images):
+    """
+    Adds a random poisson number (by default, rate=1)
+
+    inputs
+    images (np.array): of shape (N, x, y, c) of galaxy pixels
+
+    """    
     images = np.random.poisson(images)
     return images
 
